@@ -10,7 +10,7 @@ interface Account {
 
 interface AccountState {
     account: Account
-    info: String
+    info: string
 }
 
 class MyAccount extends React.Component<{}, AccountState> {
@@ -66,7 +66,7 @@ class MyAccount extends React.Component<{}, AccountState> {
         this.forceUpdate();
     }
 
-    private setInfo(err: String) {
+    private setInfo(err: string) {
         console.log(err);
         this.setState({info: err});
     }

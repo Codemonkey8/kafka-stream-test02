@@ -44,7 +44,7 @@ public class MyListener {
     public void personListener(ConsumerRecord<String, Person> record) {
         Person person = record.value();
         log.info("got person record {}", person);
-        if(!person.isActive()) {
+        if(person.isActive()) {
             log.info("saving person {}", person);
             personRepository.save(getMapper(MyMapper.class).map(person));
         } else {
@@ -54,11 +54,11 @@ public class MyListener {
 
     }
 
-    @KafkaListener(topics = "accout", properties = "spring.json.value.default.type: at.codemonkey.common.Account")
+    @KafkaListener(topics = "account", properties = "spring.json.value.default.type: at.codemonkey.common.Account")
     public void accountListener(ConsumerRecord<String, Account> record) {
         Account account = record.value();
         log.info("got account record {}", account);
-        if(!account.isActive()) {
+        if(account.isActive()) {
             log.info("saving account {}", account);
             accountRepository.save(getMapper(MyMapper.class).map(account));
         } else {

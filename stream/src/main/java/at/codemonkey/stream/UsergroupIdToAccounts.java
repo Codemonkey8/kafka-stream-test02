@@ -18,7 +18,7 @@ public class UsergroupIdToAccounts {
     }
 
     UsergroupIdToAccounts removeAccount(Account account) {
-        accounts.remove(account);
+        accounts.removeIf(a -> a.getId().equals(account.getId()));
         return this;
     }
 }

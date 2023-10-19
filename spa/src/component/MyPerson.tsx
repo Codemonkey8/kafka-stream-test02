@@ -16,7 +16,7 @@ interface Person {
 
 interface PersonState {
     person: Person
-    info: String
+    info: string
 }
 
 class MyPerson extends React.Component<{}, PersonState> {
@@ -75,7 +75,7 @@ class MyPerson extends React.Component<{}, PersonState> {
         this.setState({person: {name: this.state.person.name, age: age}});
     }
 
-    setInfo(err: String) {
+    setInfo(err: string) {
         console.log(err);
         this.setState({info: err});
     }

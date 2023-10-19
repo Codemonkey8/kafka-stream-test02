@@ -1,9 +1,5 @@
 version: '3.1'
 services:
-#  order-user:
-#    image: order-user:latest
-#    depends_on:
-#      - kafka
   elasticsearch:
     image: elasticsearch:8.10.2
     ports:
@@ -29,7 +25,7 @@ services:
 #      - ELASTICSEARCH_USERNAME=kibana_system
 #      - ELASTICSEARCH_PASSWORD=sys
     healthcheck:
-      test: curl -s http://localhost:5601 >/dev/null || exit -1
+      test: echo ruok | nc -w 2 zookeeper 4444"
       interval: 10s
       timeout: 10s
       retries: 120
@@ -71,7 +67,7 @@ services:
       test: nc -z localhost 9092 || exit -1
       interval: 5s
       timeout: 10s
-      retries: 10
+      retries: 120
   kafka-create-tropic:
     image: confluentinc/cp-enterprise-kafka:latest
     depends_on:

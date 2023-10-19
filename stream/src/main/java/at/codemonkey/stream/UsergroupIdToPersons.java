@@ -18,7 +18,7 @@ public class UsergroupIdToPersons {
     }
 
     UsergroupIdToPersons removePerson(Person person) {
-        persons.remove(person);
+        persons.removeIf(p -> p.getId().equals(person.getId()));
         return this;
     }
 
