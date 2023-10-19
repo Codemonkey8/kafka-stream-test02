@@ -32,19 +32,9 @@ public class MyController {
 
     String usergroupId = "some-user-group-id";
 
-    @GetMapping("/hello")
-    public Person hello() {
-        return new Person()
-                .setAge(42)
-                .setName("John Doe");
-    }
-
     @PostMapping("/person")
     public Person postPerson(@RequestBody Person payload) throws JsonProcessingException {
         log.info("Received person: {}", payload);
-//        if(payload.getName().contains("e")) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name must not contain 'e'");
-//        }
         payload
                 .setId(UUID.randomUUID().toString())
                 .setTime(System.currentTimeMillis())
@@ -72,6 +62,11 @@ public class MyController {
         kafkaTemplate.send("person", person.getUsergroupId(), new ObjectMapper()
                 .writerWithDefaultPrettyPrinter()
                 .writeValueAsString(person));
+    }
+
+    @GetMapping("/person")
+    public Iterable<PersonEs> getPerson() {
+        return personRepository.findAll();
     }
 
     @PostMapping("/account")
@@ -108,18 +103,14 @@ public class MyController {
                 .writeValueAsString(account));
     }
 
+    @GetMapping("/account")
+    public Iterable<AccountEs> getAccount() {
+        return accountRepository.findAll();
+    }
+
     @GetMapping("/personAccount")
     public Iterable<PersonAccountEs> getPersonAccount() {
         return personAccountRepository.findAll();
     }
 
-    @GetMapping("/person")
-    public Iterable<PersonEs> getPerson() {
-        return personRepository.findAll();
-    }
-
-    @GetMapping("/account")
-    public Iterable<AccountEs> getAccount() {
-        return accountRepository.findAll();
-    }
 }
