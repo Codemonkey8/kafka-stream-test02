@@ -31,12 +31,13 @@ public class MyListener {
     public void personAccountListener(ConsumerRecord<String, PersonAccount> record) {
         PersonAccount personAccount = record.value();
         log.info("got personAccount record {}", personAccount);
+        String id = personAccount.getAccountId() + "/" + personAccount.getPersonId();
         if (personAccount.isActive()) {
             log.info("saving personAccount {}", personAccount);
-            personAccountRepository.save(getMapper(MyMapper.class).map(personAccount.getAccountId() + "/" + personAccount.getPersonId(), personAccount));
+            personAccountRepository.save(getMapper(MyMapper.class).map(personAccount).setId(id));
         } else {
             log.info("deleting personAccount {}", personAccount);
-            personAccountRepository.deleteById(personAccount.getAccountId() + "/" + personAccount.getPersonId());
+            personAccountRepository.deleteById(id);
         }
     }
 

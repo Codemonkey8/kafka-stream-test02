@@ -16,7 +16,6 @@ public interface MyMapper {
 
     AccountEs map(Account account);
 
-    @Mapping(target = "id", source = "id")
-    PersonAccountEs map(String id, PersonAccount personAccount);
+    PersonAccountEs map(PersonAccount personAccount);
 
 }
