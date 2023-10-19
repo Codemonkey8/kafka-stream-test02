@@ -1,0 +1,93 @@
+version: '3.1'
+services:
+#  order-user:
+#    image: order-user:latest
+#    depends_on:
+#      - kafka
+  elasticsearch:
+    image: elasticsearch:8.10.2
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      xpack.security.enabled: false
+    healthcheck:
+      interval: 10s
+      retries: 80
+      test: curl -s http://elasticsearch:9200 >/dev/null || exit -1
+  kibana:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    image: kibana:8.10.2
+    ports:
+      - "5601:5601"
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+#      - ELASTICSEARCH_USERNAME=kibana_system
+#      - ELASTICSEARCH_PASSWORD=sys
+    healthcheck:
+      test: curl -s http://localhost:5601 >/dev/null || exit -1
+      interval: 10s
+      timeout: 10s
+      retries: 120
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: nc -z localhost 2181 || exit -1
+      interval: 5s
+      timeout: 10s
+      retries: 20
+  kafka:
+    image: confluentinc/cp-kafka:7.5.1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS:
+        PLAINTEXT_HOST_LOCALHOST://localhost:9092,
+        PLAINTEXT_HOST_KAFKA://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:
+        PLAINTEXT_HOST_LOCALHOST:PLAINTEXT,
+        PLAINTEXT_HOST_KAFKA:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_HOST_LOCALHOST
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      AUTO_CREATE_TOPICS: true
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+  kafka-create-tropic:
+    image: confluentinc/cp-enterprise-kafka:latest
+    depends_on:
+      - kafka
+    command:
+      - /bin/sh
+      - -c
+      - |
+        kafka-topics -bootstrap-server kafka:29092 --if-exists  --delete --topic person
+        kafka-topics -bootstrap-server kafka:29092 --if-exists  --delete --topic account
+        kafka-topics -bootstrap-server kafka:29092 --if-exists  --delete --topic usergroupIdToPersons
+        kafka-topics -bootstrap-server kafka:29092 --if-exists  --delete --topic usergroupIdToAccounts
+        kafka-topics -bootstrap-server kafka:29092 --if-exists  --delete --topic personAccount
+        kafka-topics -bootstrap-server kafka:29092 --create --partitions 1 --replication-factor 1 --topic person
+        kafka-topics -bootstrap-server kafka:29092 --create --partitions 1 --replication-factor 1 --topic account
+        kafka-topics -bootstrap-server kafka:29092 --create --partitions 1 --replication-factor 1 --topic usergroupIdToPersons
+        kafka-topics -bootstrap-server kafka:29092 --create --partitions 1 --replication-factor 1 --topic usergroupIdToAccounts
+        kafka-topics -bootstrap-server kafka:29092 --create --partitions 1 --replication-factor 1 --topic personAccount
+

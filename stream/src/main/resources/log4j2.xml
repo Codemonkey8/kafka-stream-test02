@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Appenders>
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %highlight{[%-5level]}{FATAL=Magenta bold, ERROR=red, WARN=yellow bold, INFO=Green, DEBUG=blue, TRACE=White} %logger{36} - %msg%n" disableAnsi="false"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="warn">
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+        <Logger name="at.codemonkey.stream" level="trace"/>
+    </Loggers>
+</Configuration>

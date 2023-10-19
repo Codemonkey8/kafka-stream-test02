@@ -1,0 +1,23 @@
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      group-id: rest
+      #      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      #      value-serializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      commit:
+        interval:
+          ms: 1 # no commit delay, default is 30 seconds
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: kafkaToEs
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            use.type.headers: false
+    elasticsearch:
+    rest:
+      uris: http://localhost:9200
