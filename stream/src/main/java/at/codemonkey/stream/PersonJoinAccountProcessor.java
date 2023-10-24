@@ -35,13 +35,14 @@ public class PersonJoinAccountProcessor {
                                 return Optional.ofNullable(usergroupIdToPersons).orElseGet(UsergroupIdToPersons::new)
                                         .setUsergroupId(person.getUsergroupId())
                                         .addPerson(person);
-                            } else {
+                            } else if (usergroupIdToPersons != null) {
                                 usergroupIdToPersons.removePerson(person);
                                 if (usergroupIdToPersons.getPersons().isEmpty()) {
                                     return null; // delete
                                 }
                                 return usergroupIdToPersons;
                             }
+                            return null;
                         })
                 .peek((key, value) -> log.info("usergroupIdToPersons {}/{}-{}", key, value == null ? "null" : value.getPersons().size(), value == null ? "null" : value.getPersons()))
                 .to("usergroupIdToPersons", Produced.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToPersons.class)));
@@ -52,13 +53,14 @@ public class PersonJoinAccountProcessor {
                                 return Optional.ofNullable(usergroupIdToAccounts).orElseGet(UsergroupIdToAccounts::new)
                                         .setUsergroupId(account.getUsergroupId())
                                         .addAccount(account);
-                            } else {
+                            } else if (usergroupIdToAccounts != null) {
                                 usergroupIdToAccounts.removeAccount(account);
                                 if (usergroupIdToAccounts.getAccounts().isEmpty()) {
                                     return null; // delete
                                 }
                                 return usergroupIdToAccounts;
                             }
+                            return null;
                         })
                 .peek((key, value) -> log.info("usergroupIdToAccounts {}/{}", key, value == null ? "null" : value.getAccounts().size()))
                 .to("usergroupIdToAccounts", Produced.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToAccounts.class)));

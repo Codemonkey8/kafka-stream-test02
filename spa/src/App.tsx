@@ -1,17 +1,13 @@
 import React from 'react';
 import './_App.css';
-import MyPerson from "./component/MyPerson";
 
 import "bootstrap/dist/css/bootstrap.min.css"
+import MyPerson from "./component/MyPerson";
 import MyAccount from "./component/MyAccount";
 import MyPersons from "./component/MyPersons";
 import MyAccounts from "./component/MyAccounts";
-import MyPersonAccounts from "./component/MyPersonAccounts";
+import MyPersonAccount from "./component/MyPersonAccount";
 
-interface Person {
-    name: string
-    age: number
-}
 
 const App = () => {
 
@@ -27,7 +23,7 @@ const App = () => {
                     <div className="col"><MyAccounts/></div>
                 </div>
                 <div className="row">
-                    <div className="col"><MyPersonAccounts/></div>
+                    <div className="col"><MyPersonAccount/></div>
                 </div>
             </div>
         </div>

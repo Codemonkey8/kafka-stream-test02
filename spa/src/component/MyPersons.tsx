@@ -1,7 +1,6 @@
-import React, {useEffect} from "react";
-import {Config, starWars, uniqueNamesGenerator} from 'unique-names-generator';
-import {Alert, Button, ButtonGroup, Form, InputGroup, ListGroup, Table} from "react-bootstrap";
-import InputGroupText from "react-bootstrap/InputGroupText";
+import React from "react";
+import {Button, Table} from "react-bootstrap";
+import {Client} from '@stomp/stompjs';
 
 
 interface Person {
@@ -17,6 +16,8 @@ interface PersonsState {
 
 class MyPersons extends React.Component<{}, PersonsState> {
 
+    private client: Client = new Client;
+
     constructor(props: any) {
         super(props);
         this.initStates();
@@ -24,19 +25,35 @@ class MyPersons extends React.Component<{}, PersonsState> {
         this.handleReloadList = this.handleReloadList.bind(this);
         this.render = this.render.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-        setInterval(() => this.handleReloadList(), 200);
+        // setInterval(() => this.handleReloadList(), 200);
     }
 
 
     initStates() {
         this.state = ({persons: [], info: "init"});
-        this.handleReloadList();
     }
 
+    componentDidMount() {
+        this.handleReloadList();
+        this.client.configure({
+            brokerURL: 'ws://localhost:8080/ws',
+            onConnect: () => {
+                console.log('onConnect');
+                this.client.subscribe('/topic/person', (message: { body: any; }) => {
+                    console.log(message.body);
+                    this.handleReloadList();
+                });
+            },
+            // Helps during debugging, remove in production
+            debug: (str: any) => {
+                console.log(new Date(), str);
+            }
+        });
+        this.client.activate();
+    }
 
     handleReloadList() {
-        fetch("http://localhost:8080/person", {
-        }).then(response => response.json().then(data => {
+        fetch("http://localhost:8080/person", {}).then(response => response.json().then(data => {
             console.log(data);
             this.setState({persons: data.content});
             console.log(this.state);
@@ -46,7 +63,7 @@ class MyPersons extends React.Component<{}, PersonsState> {
         });
     }
 
-    handleDelete(id : string) {
+    handleDelete(id: string) {
         fetch("http://localhost:8080/person/" + id, {
             method: 'DELETE'
         }).then(response => response.json().then(data => {
@@ -64,7 +81,6 @@ class MyPersons extends React.Component<{}, PersonsState> {
     }
 
 
-
     render() {
         return (
             <div>
@@ -78,10 +94,11 @@ class MyPersons extends React.Component<{}, PersonsState> {
                     </thead>
                     <tbody>
                     {this.state.persons.map(person =>
-                        <tr>
+                        <tr key={person.id}>
                             <td>{person.name}</td>
                             <td>{person.age}</td>
-                            <td><Button variant="outline-danger" onClick={() => this.handleDelete(person.id)}>delete</Button></td>
+                            <td><Button variant="outline-danger"
+                                        onClick={() => this.handleDelete(person.id)}>delete</Button></td>
                         </tr>
                     )}
                     </tbody>

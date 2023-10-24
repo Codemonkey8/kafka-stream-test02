@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import static org.mapstruct.factory.Mappers.getMapper;
@@ -27,6 +28,9 @@ public class MyListener {
     @Autowired
     AccountRepository accountRepository;
 
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
+
     @KafkaListener(topics = "personAccount", properties = "spring.json.value.default.type: at.codemonkey.common.PersonAccount")
     public void personAccountListener(ConsumerRecord<String, PersonAccount> record) {
         PersonAccount personAccount = record.value();
@@ -39,32 +43,37 @@ public class MyListener {
             log.info("deleting personAccount {}", personAccount);
             personAccountRepository.deleteById(id);
         }
+        simpMessagingTemplate.convertAndSend("/topic/person-accounts", id);
     }
 
     @KafkaListener(topics = "person", properties = "spring.json.value.default.type: at.codemonkey.common.Person")
     public void personListener(ConsumerRecord<String, Person> record) {
         Person person = record.value();
         log.info("got person record {}", person);
-        if(person.isActive()) {
+        if (person.isActive()) {
             log.info("saving person {}", person);
             personRepository.save(getMapper(MyMapper.class).map(person));
         } else {
             log.info("deleting person {}", person);
             personRepository.deleteById(person.getId());
+
         }
 
+        simpMessagingTemplate.convertAndSend("/topic/person", person.getId());
+        log.info("sent person id {}", person.getId());
     }
 
     @KafkaListener(topics = "account", properties = "spring.json.value.default.type: at.codemonkey.common.Account")
     public void accountListener(ConsumerRecord<String, Account> record) {
         Account account = record.value();
         log.info("got account record {}", account);
-        if(account.isActive()) {
+        if (account.isActive()) {
             log.info("saving account {}", account);
             accountRepository.save(getMapper(MyMapper.class).map(account));
         } else {
             log.info("deleting account {}", account);
             accountRepository.deleteById(account.getId());
         }
+        simpMessagingTemplate.convertAndSend("/topic/account", account.getId());
     }
 }

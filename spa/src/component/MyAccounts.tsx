@@ -1,7 +1,6 @@
 import React from "react";
-import {Config, starWars, uniqueNamesGenerator} from 'unique-names-generator';
-import {Alert, Button, ButtonGroup, Form, InputGroup, ListGroup, Table} from "react-bootstrap";
-import InputGroupText from "react-bootstrap/InputGroupText";
+import {Button, Table} from "react-bootstrap";
+import {Client} from '@stomp/stompjs';
 
 
 interface Account {
@@ -17,6 +16,8 @@ interface AccountsState {
 
 class MyAccounts extends React.Component<{}, AccountsState> {
 
+    private client: Client = new Client;
+
     constructor(props: any) {
         super(props);
         this.initStates();
@@ -24,18 +25,34 @@ class MyAccounts extends React.Component<{}, AccountsState> {
         this.handleReloadList = this.handleReloadList.bind(this);
         this.render = this.render.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-        setInterval(() => this.handleReloadList(), 200);
+        // setInterval(() => this.handleReloadList(), 200);
     }
 
     initStates() {
         this.state = ({accounts: [], info: "init"});
-        this.handleReloadList();
     }
 
+    componentDidMount() {
+        this.handleReloadList();
+        this.client.configure({
+            brokerURL: 'ws://localhost:8080/ws',
+            onConnect: () => {
+                console.log('onConnect');
+                this.client.subscribe('/topic/account', (message: { body: any; }) => {
+                    console.log(message.body);
+                    this.handleReloadList();
+                });
+            },
+            // Helps during debugging, remove in production
+            debug: (str: any) => {
+                console.log(new Date(), str);
+            }
+        });
+        this.client.activate();
+    }
 
     handleReloadList() {
-        fetch("http://localhost:8080/account", {
-        }).then(response => response.json().then(data => {
+        fetch("http://localhost:8080/account", {}).then(response => response.json().then(data => {
             console.log(data);
             this.setState({accounts: data.content});
             console.log(this.state);
@@ -45,7 +62,7 @@ class MyAccounts extends React.Component<{}, AccountsState> {
         });
     }
 
-    handleDelete(id : string) {
+    handleDelete(id: string) {
         fetch("http://localhost:8080/account/" + id, {
             method: 'DELETE'
         }).then(response => response.json().then(data => {
@@ -75,10 +92,11 @@ class MyAccounts extends React.Component<{}, AccountsState> {
                     </thead>
                     <tbody>
                     {this.state.accounts.map(account =>
-                        <tr>
+                        <tr key={account.id}>
                             <td>{account.name}</td>
                             <td>{account.iban}</td>
-                            <td><Button variant="outline-danger" onClick={() => this.handleDelete(account.id)}>delete</Button></td>
+                            <td><Button variant="outline-danger"
+                                        onClick={() => this.handleDelete(account.id)}>delete</Button></td>
                         </tr>
                     )}
                     </tbody>

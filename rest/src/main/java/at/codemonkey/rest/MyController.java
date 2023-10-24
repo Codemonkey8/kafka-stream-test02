@@ -3,11 +3,8 @@ package at.codemonkey.rest;
 import at.codemonkey.common.Account;
 import at.codemonkey.common.Person;
 import at.codemonkey.rest.es.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +16,7 @@ import java.util.UUID;
 public class MyController {
 
     @Autowired
-    KafkaTemplate<String, String> kafkaTemplate;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     @Autowired
     PersonAccountRepository personAccountRepository;
@@ -30,38 +27,34 @@ public class MyController {
     @Autowired
     AccountRepository accountRepository;
 
-    String usergroupId = "some-user-group-id";
+    final String usergroupId = "some-user-group-id";
 
     @PostMapping("/person")
-    public Person postPerson(@RequestBody Person payload) throws JsonProcessingException {
-        log.info("Received person: {}", payload);
-        payload
+    public Person postPerson(@RequestBody Person person) {
+        log.info("Received person: {}", person);
+        person
                 .setId(UUID.randomUUID().toString())
                 .setTime(System.currentTimeMillis())
                 .setUsergroupId(usergroupId);
-        kafkaTemplate.send("person", payload.getUsergroupId(), new ObjectMapper().writeValueAsString(payload));
-        return payload;
+        kafkaTemplate.send("person", person.getUsergroupId(), person);
+        return person;
     }
 
     @PutMapping("/person")
-    public Person putPerson(@RequestBody Person payload) throws JsonProcessingException {
-        payload.setTime(System.currentTimeMillis())
+    public Person putPerson(@RequestBody Person person) {
+        person.setTime(System.currentTimeMillis())
                 .setUsergroupId(usergroupId);
-        kafkaTemplate.send("person", payload.getUsergroupId(), new ObjectMapper()
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(payload));
-        return payload;
+        kafkaTemplate.send("person", person.getUsergroupId(), person);
+        return person;
     }
 
     @DeleteMapping("/person/{id}")
-    public void putPerson(@PathVariable String id) throws JsonProcessingException {
+    public void putPerson(@PathVariable String id) {
         Person person = new Person().setTime(System.currentTimeMillis())
                 .setUsergroupId(usergroupId)
                 .setId(id)
                 .setActive(false);
-        kafkaTemplate.send("person", person.getUsergroupId(), new ObjectMapper()
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(person));
+        kafkaTemplate.send("person", person.getUsergroupId(), person);
     }
 
     @GetMapping("/person")
@@ -70,37 +63,31 @@ public class MyController {
     }
 
     @PostMapping("/account")
-    public Account postAccount(@RequestBody Account payload) throws JsonProcessingException {
-        log.info("Received account: {}", payload);
-        payload
+    public Account postAccount(@RequestBody Account account) {
+        log.info("Received account: {}", account);
+        account
                 .setId(UUID.randomUUID().toString())
                 .setTime(System.currentTimeMillis())
                 .setUsergroupId(usergroupId);
-        kafkaTemplate.send("account", payload.getUsergroupId(), new ObjectMapper()
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(payload));
-        return payload;
+        kafkaTemplate.send("account", account.getUsergroupId(), account);
+        return account;
     }
 
     @PutMapping("/account")
-    public Account putAccount(@RequestBody Account payload) throws JsonProcessingException {
-        payload.setTime(System.currentTimeMillis())
+    public Account putAccount(@RequestBody Account account) {
+        account.setTime(System.currentTimeMillis())
                 .setUsergroupId(usergroupId);
-        kafkaTemplate.send("account", payload.getUsergroupId(), new ObjectMapper()
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(payload));
-        return payload;
+        kafkaTemplate.send("account", account.getUsergroupId(), account);
+        return account;
     }
 
     @DeleteMapping("/account/{id}")
-    public void putAccount(@PathVariable String id) throws JsonProcessingException {
+    public void putAccount(@PathVariable String id) {
         Account account = new Account().setTime(System.currentTimeMillis())
                 .setUsergroupId(usergroupId)
                 .setId(id)
                 .setActive(false);
-        kafkaTemplate.send("account", account.getUsergroupId(), new ObjectMapper()
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(account));
+        kafkaTemplate.send("account", account.getUsergroupId(), account);
     }
 
     @GetMapping("/account")
