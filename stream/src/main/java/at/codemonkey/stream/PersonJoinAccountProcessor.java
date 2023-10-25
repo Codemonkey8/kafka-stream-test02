@@ -91,7 +91,6 @@ public class PersonJoinAccountProcessor {
 //                .processValues(() -> (FixedKeyProcessor<String, PersonAccount, PersonAccount>) record -> record.headers().add("header.key", PersonAccount.class.getName().getBytes()))
                 .to("personAccount", Produced.with(Serdes.String(), JsonSerializer.serdeFrom(PersonAccount.class)));
 
-
         startStream(builder);
     }
 
@@ -115,7 +114,7 @@ public class PersonJoinAccountProcessor {
 
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 //        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 1);
         final CountDownLatch latch = new CountDownLatch(1);
         try (KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), props)) {

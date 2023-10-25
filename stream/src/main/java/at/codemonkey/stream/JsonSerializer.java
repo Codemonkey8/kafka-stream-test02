@@ -19,10 +19,6 @@ public class JsonSerializer<T> implements Serializer<T>, Deserializer<T> {
 
     final Class<T> clazz;
 
-//    public static <T> org.example.JsonSerializer<T> serializer(Class<T> clazz) {
-//        return new org.example.JsonSerializer<>(clazz);
-//    }
-
     public static <T> Serde<T> serdeFrom(Class<T> clazz) {
         JsonSerializer<T> jsonSerializer = new JsonSerializer<>(clazz);
         return Serdes.serdeFrom(jsonSerializer, jsonSerializer);
@@ -32,7 +28,6 @@ public class JsonSerializer<T> implements Serializer<T>, Deserializer<T> {
     public void configure(Map<String, ?> config, boolean isKey) {
         //Nothing to Configure
     }
-
 
     @Override
     public byte[] serialize(String topic, T data) {
@@ -50,9 +45,7 @@ public class JsonSerializer<T> implements Serializer<T>, Deserializer<T> {
     public T deserialize(String topic, byte[] bytes) {
         if (bytes == null)
             return null;
-
 //        log.info("deserialize: {}", new String(bytes));
-
         try {
             return objectMapper.readValue(bytes, clazz);
         } catch (Exception e) {

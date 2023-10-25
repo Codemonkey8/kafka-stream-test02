@@ -2,12 +2,12 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     producer:
-      group-id: rest
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      commit:
-        interval:
-          ms: 1 # no commit delay, default is 30 seconds
+      batch-size: 0 # send everything immediately. Should not be set, if you send large amounts
+#      commit:
+#        interval:
+#          ms: 1 # no commit delay, default is 30 seconds
     consumer:
       group-id: kafkaToEs
       auto-offset-reset: earliest
@@ -16,7 +16,6 @@ spring:
       properties:
         spring:
           json:
-            use.type.headers: false
-    elasticsearch:
-    rest:
-      uris: http://localhost:9200
+            use.type.headers: false # only needed, if the spring type header is not set (not sent by spring kafka)
+  elasticsearch:
+    uris: http://localhost:9200

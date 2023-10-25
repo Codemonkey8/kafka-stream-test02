@@ -1,14 +1,7 @@
 import React from "react";
-import {Config, starWars, uniqueNamesGenerator} from 'unique-names-generator';
+import {starWars, uniqueNamesGenerator} from 'unique-names-generator';
 import {Alert, Button, ButtonGroup, Form, InputGroup} from "react-bootstrap";
 import InputGroupText from "react-bootstrap/InputGroupText";
-
-const customConfig: Config = {
-    dictionaries: [starWars],
-    separator: '-',
-    length: 2,
-};
-
 interface Person {
     name: string
     age: number
@@ -83,7 +76,7 @@ class MyPerson extends React.Component<{}, PersonState> {
     render() {
         return <div>
             <h4>Person</h4>
-            <Form className="mb-1">
+            <Form className="mb-1 mx-2">
                 <InputGroup className="row mb-1">
                     <InputGroupText className="col-2">Name</InputGroupText>
                     <Form.Control className="col" value={this.state.person.name}
