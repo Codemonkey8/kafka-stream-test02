@@ -41,7 +41,6 @@ const App = () => {
                         <div className="row">
                             <div className="col"><PersonAccounts/></div>
                         </div>
-
                     </div>
                 </UserContext.Provider>
             </div>

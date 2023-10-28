@@ -4,46 +4,36 @@ import {Alert, Button, ButtonGroup, Form, InputGroup} from "react-bootstrap";
 import InputGroupText from "react-bootstrap/InputGroupText";
 import {UserContext} from "../App";
 
-interface Account {
-    name: string
-    iban: string
-}
-
-interface AccountRto extends Account {
-    usergroupId: string
-}
-
-function randomIban(): string {
-    return `AT${Math.floor(Math.random() * 10000000000000000)}`;
-}
-
-function randomName() {
-    return uniqueNamesGenerator({
-        dictionaries: [starWars]
-    });
-}
-
-function randomAccount() {
-    return {name: randomName(), iban: randomIban()};
-}
 
 export default function Account() {
 
     const user = useContext(UserContext);
-    const [account, setAccount] = React.useState<Account>(randomAccount());
+    const [name, setName] = React.useState<string>(randomName);
+    const [iban, setIban] = React.useState<string>(randomIban);
     const [info, setInfo] = React.useState<string>("init");
+
+    function randomIban(): string {
+        return `AT${Math.floor(Math.random() * 10000000000000000)}`;
+    }
+
+    function randomName() {
+        return uniqueNamesGenerator({
+            dictionaries: [starWars]
+        });
+    }
+
+    function regenerate() {
+        setName(randomName());
+        setIban(randomIban());
+    }
 
     function handleSubmit() {
         console.log("post account:");
-        console.log(account);
-
-        let rto = account as AccountRto;
-        rto.usergroupId = user.usergroupId;
 
         fetch("http://localhost:8080/account", {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(rto)
+            body: JSON.stringify({name: name, iban: iban, usergroupId: user.usergroupId})
         })
             .then(response => response.json().then(data => {
                 setInfo("created id: " + data.id);
@@ -52,28 +42,17 @@ export default function Account() {
         regenerate();
     }
 
-    function regenerate() {
-        setAccount(randomAccount());
-    }
-
     return <div>
         <h4>Account</h4>
         <Form className="mb-1 mx-2">
             <InputGroup className="row mb-1">
                 <InputGroupText className="col-2">Name</InputGroupText>
-                <Form.Control className="col" value={account.name}
-                              onChange={event => {
-                                  account.name = event.target.value;
-                                  setAccount(account);
-                              }
-                              }
-                />
+                <Form.Control className="col" value={name} onChange={e => setName(e.target.value)}/>
             </InputGroup>
             <InputGroup className="row mb-1">
                 <InputGroupText className="col-2">Iban</InputGroupText>
-                <Form.Control className="col" value={account.iban}
-                              onChange={event => account.iban = event.target.value}
-                />
+                <Form.Control className="col" value={iban}
+                              onChange={e => setIban(e.target.value)}/>
             </InputGroup>
             <ButtonGroup aria-label="Basic example" className="mb-1">
                 <Button variant="primary" onClick={handleSubmit}>Submit</Button>
