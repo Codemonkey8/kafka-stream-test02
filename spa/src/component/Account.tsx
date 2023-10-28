@@ -12,14 +12,14 @@ export default function Account() {
     const [iban, setIban] = React.useState<string>(randomIban);
     const [info, setInfo] = React.useState<string>("init");
 
-    function randomIban(): string {
-        return `AT${Math.floor(Math.random() * 10000000000000000)}`;
-    }
-
     function randomName() {
         return uniqueNamesGenerator({
             dictionaries: [starWars]
         });
+    }
+
+    function randomIban(): string {
+        return `AT${Math.floor(Math.random() * 10000000000000000)}`;
     }
 
     function regenerate() {

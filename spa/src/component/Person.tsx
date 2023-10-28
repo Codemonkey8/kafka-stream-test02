@@ -12,14 +12,14 @@ export default function Person() {
     const [age, setAge] = React.useState<number>(randomAge);
     const [info, setInfo] = React.useState<string>("init");
 
-    function randomAge() {
-        return 1 + Math.floor(Math.random() * 99);
-    }
-
     function randomName() {
         return uniqueNamesGenerator({
             dictionaries: [starWars]
         });
+    }
+
+    function randomAge() {
+        return 1 + Math.floor(Math.random() * 99);
     }
 
     function handleSubmit() {
