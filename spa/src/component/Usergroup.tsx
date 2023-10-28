@@ -12,8 +12,7 @@ export default function Usergroup() {
         <div>
             <InputGroup className="row mb-1">
                 <InputGroupText className="col-2">Usergroup</InputGroupText>
-                <Form.Select aria-label="Default select example"
-                             onChange={e => user.usergroupId = e.target.value}>
+                <Form.Select aria-label="usergroup" onChange={e => user.usergroupId = e.target.value}>
                     <option value="Administrator">Administrator</option>
                     <option value="Accounting">Accounting</option>
                     <option value="Other">Other</option>
