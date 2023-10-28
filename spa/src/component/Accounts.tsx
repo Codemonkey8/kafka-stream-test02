@@ -9,7 +9,7 @@ interface Account {
     usergroupId: string
 }
 
-export default function MyAccounts() {
+export default function Accounts() {
 
     const [accounts, setAccounts] = React.useState<Account[]>([]);
 

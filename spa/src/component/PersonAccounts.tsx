@@ -14,7 +14,7 @@ interface PersonAccount {
     usergroupId: string
 }
 
-export default function MyPersonAccounts() {
+export default function PersonAccounts() {
 
     const [personAccounts, setPersonAccounts] = React.useState<PersonAccount[]>([]);
 

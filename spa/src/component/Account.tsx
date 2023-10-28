@@ -27,7 +27,7 @@ function randomAccount() {
     return {name: randomName(), iban: randomIban()};
 }
 
-export default function MyAccount() {
+export default function Account() {
 
     const user = useContext(UserContext);
     const [account, setAccount] = React.useState<Account>(randomAccount());

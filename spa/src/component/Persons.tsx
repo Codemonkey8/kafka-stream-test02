@@ -9,7 +9,7 @@ interface Person {
     usergroupId: string
 }
 
-export default function MyPersons() {
+export default function Persons() {
 
     const [persons, setPersons] = React.useState<Person[]>([]);
 

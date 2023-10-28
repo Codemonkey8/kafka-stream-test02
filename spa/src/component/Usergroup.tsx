@@ -4,7 +4,7 @@ import {InputGroup} from "react-bootstrap";
 import InputGroupText from "react-bootstrap/InputGroupText";
 import {UserContext} from "../App";
 
-export default function MyUsergroup() {
+export default function Usergroup() {
 
     const user = useContext(UserContext);
 

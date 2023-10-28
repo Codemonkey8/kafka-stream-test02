@@ -27,7 +27,7 @@ function randomPerson() {
     return {name: randomName(), age: randomAge()};
 }
 
-export default function MyPerson() {
+export default function Person() {
 
     const user = useContext(UserContext);
     const [person, setPerson] = React.useState<Person>(randomPerson());

@@ -2,12 +2,12 @@ import React from 'react';
 import './App.css';
 
 import "bootstrap/dist/css/bootstrap.min.css"
-import MyPerson from "./component/MyPerson";
-import MyAccount from "./component/MyAccount";
-import MyPersons from "./component/MyPersons";
-import MyAccounts from "./component/MyAccounts";
-import MyPersonAccounts from "./component/MyPersonAccounts";
-import MyUsergroup from "./component/MyUsergroup";
+import Person from "./component/Person";
+import Account from "./component/Account";
+import Persons from "./component/Persons";
+import Accounts from "./component/Accounts";
+import PersonAccounts from "./component/PersonAccounts";
+import Usergroup from "./component/Usergroup";
 import {StompSessionProvider} from "react-stomp-hooks";
 
 export interface User {
@@ -28,18 +28,18 @@ const App = () => {
                 <UserContext.Provider value={{usergroupId: "Administrator"}}>
                     <div className="table">
                         <div className="row">
-                            <div className="col"><MyUsergroup/></div>
+                            <div className="col"><Usergroup/></div>
                         </div>
                         <div className="row">
-                            <div className="col"><MyPerson/></div>
-                            <div className="col"><MyAccount/></div>
+                            <div className="col"><Person/></div>
+                            <div className="col"><Account/></div>
                         </div>
                         <div className="row">
-                            <div className="col"><MyPersons/></div>
-                            <div className="col"><MyAccounts/></div>
+                            <div className="col"><Persons/></div>
+                            <div className="col"><Accounts/></div>
                         </div>
                         <div className="row">
-                            <div className="col"><MyPersonAccounts/></div>
+                            <div className="col"><PersonAccounts/></div>
                         </div>
 
                     </div>
