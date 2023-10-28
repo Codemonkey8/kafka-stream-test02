@@ -3,6 +3,9 @@ package at.codemonkey.stream;
 import at.codemonkey.common.Account;
 import at.codemonkey.common.Person;
 import at.codemonkey.common.PersonAccount;
+import at.codemonkey.stream.common.JsonSerializer;
+import at.codemonkey.stream.model.UsergroupIdToAccounts;
+import at.codemonkey.stream.model.UsergroupIdToPersons;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -21,57 +24,53 @@ import static java.util.stream.Collectors.toList;
 @Log4j2
 public class PersonJoinAccountProcessor {
     public static void main(String[] args) {
-
         StreamsBuilder builder = new StreamsBuilder();
 
         var personStream = builder.stream("person", Consumed.with(Serdes.String(), JsonSerializer.serdeFrom(Person.class)));
         var accountStream = builder.stream("account", Consumed.with(Serdes.String(), JsonSerializer.serdeFrom(Account.class)));
-        var usergroupIdToPersonsTable = builder.table("usergroupIdToPersons", Consumed.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToPersons.class)));
+        var personToUsergroupTopic = builder.table("usergroupIdToPersons", Consumed.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToPersons.class)));
         var usergroupIdToAccountsTable = builder.table("usergroupIdToAccounts", Consumed.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToAccounts.class)));
 
-        personStream.leftJoin(usergroupIdToPersonsTable,
-                        (person, usergroupIdToPersons) -> {
-                            if (person.isActive()) {
-                                return Optional.ofNullable(usergroupIdToPersons).orElseGet(UsergroupIdToPersons::new)
-                                        .setUsergroupId(person.getUsergroupId())
-                                        .addPerson(person);
-                            } else if (usergroupIdToPersons != null) {
-                                usergroupIdToPersons.removePerson(person);
-                                if (usergroupIdToPersons.getPersons().isEmpty()) {
-                                    return null; // delete
-                                }
-                                return usergroupIdToPersons;
-                            }
-                            return null;
-                        })
+        personStream.leftJoin(personToUsergroupTopic, (person, usergroupIdToPersons) -> {
+                    if (person.isActive()) {
+                        return Optional.ofNullable(usergroupIdToPersons).orElseGet(UsergroupIdToPersons::new)
+                                .setUsergroupId(person.getUsergroupId())
+                                .addPerson(person);
+                    } else if (usergroupIdToPersons != null) {
+                        usergroupIdToPersons.removePerson(person);
+                        if (usergroupIdToPersons.getPersons().isEmpty()) {
+                            return null; // delete
+                        }
+                        return usergroupIdToPersons;
+                    }
+                    return null; // delete on person where usergroupIdToPersons was already deleted
+                })
                 .peek((key, value) -> log.info("usergroupIdToPersons {}/{}-{}", key, value == null ? "null" : value.getPersons().size(), value == null ? "null" : value.getPersons()))
                 .to("usergroupIdToPersons", Produced.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToPersons.class)));
 
-        accountStream.leftJoin(usergroupIdToAccountsTable,
-                        (account, usergroupIdToAccounts) -> {
-                            if (account.isActive()) {
-                                return Optional.ofNullable(usergroupIdToAccounts).orElseGet(UsergroupIdToAccounts::new)
-                                        .setUsergroupId(account.getUsergroupId())
-                                        .addAccount(account);
-                            } else if (usergroupIdToAccounts != null) {
-                                usergroupIdToAccounts.removeAccount(account);
-                                if (usergroupIdToAccounts.getAccounts().isEmpty()) {
-                                    return null; // delete
-                                }
-                                return usergroupIdToAccounts;
-                            }
-                            return null;
-                        })
+        accountStream.leftJoin(usergroupIdToAccountsTable, (account, usergroupIdToAccounts) -> {
+                    if (account.isActive()) {
+                        return Optional.ofNullable(usergroupIdToAccounts).orElseGet(UsergroupIdToAccounts::new)
+                                .setUsergroupId(account.getUsergroupId())
+                                .addAccount(account);
+                    } else if (usergroupIdToAccounts != null) {
+                        usergroupIdToAccounts.removeAccount(account);
+                        if (usergroupIdToAccounts.getAccounts().isEmpty()) {
+                            return null; // delete
+                        }
+                        return usergroupIdToAccounts;
+                    }
+                    return null;
+                })
                 .peek((key, value) -> log.info("usergroupIdToAccounts {}/{}", key, value == null ? "null" : value.getAccounts().size()))
                 .to("usergroupIdToAccounts", Produced.with(Serdes.String(), JsonSerializer.serdeFrom(UsergroupIdToAccounts.class)));
 
         personStream
                 .peek((key, value) -> log.info("person {}/{}", key, value))
-                .join(usergroupIdToAccountsTable,
-                        (person, usergroupIdToAccounts) ->
-                                usergroupIdToAccounts.getAccounts().stream()
-                                        .map(account -> buildPersonAccount(account, person))
-                                        .collect(toList())
+                .join(usergroupIdToAccountsTable, (person, usergroupIdToAccounts) ->
+                        usergroupIdToAccounts.getAccounts().stream()
+                                .map(account -> buildPersonAccount(account, person))
+                                .collect(toList())
                 )
                 .flatMap((key, accountPersons) -> accountPersons.stream().map(personAccount -> new KeyValue<>(personAccount.getPersonId() + "/" + personAccount.getAccountId(), personAccount)).collect(toList()))
                 .peek((key, value) -> log.info("personAccount by person {}/{}", key, value))
@@ -79,14 +78,12 @@ public class PersonJoinAccountProcessor {
 
         accountStream
                 .peek((key, value) -> log.info("account {}/{}", key, value))
-                .join(usergroupIdToPersonsTable,
-                        (account, usergroupIdToPersons) ->
-                                usergroupIdToPersons.getPersons().stream()
-                                        .map(person -> buildPersonAccount(account, person))
-                                        .collect(toList())
+                .join(personToUsergroupTopic, (account, usergroupIdToPersons) ->
+                        usergroupIdToPersons.getPersons().stream()
+                                .map(person -> buildPersonAccount(account, person))
+                                .collect(toList())
                 )
                 .flatMap((key, accountPersons) -> accountPersons.stream().map(personAccount -> new KeyValue<>(personAccount.getPersonId() + "/" + personAccount.getAccountId(), personAccount)).collect(toList()))
-                .filter((key, value) -> value.getPersonId() != null && value.getAccountId() != null)
                 .peek((key, value) -> log.info("personAccount by account {}/{}", key, value))
 //                .processValues(() -> (FixedKeyProcessor<String, PersonAccount, PersonAccount>) record -> record.headers().add("header.key", PersonAccount.class.getName().getBytes()))
                 .to("personAccount", Produced.with(Serdes.String(), JsonSerializer.serdeFrom(PersonAccount.class)));

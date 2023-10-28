@@ -1,7 +1,6 @@
-package at.codemonkey.rest.es;
+package at.codemonkey.rest.account;
 
 import at.codemonkey.common.Account;
-import at.codemonkey.common.Person;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;

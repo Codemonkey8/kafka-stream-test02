@@ -1,4 +1,4 @@
-package at.codemonkey.stream;
+package at.codemonkey.stream.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,7 @@ public class JsonSerializer<T> implements Serializer<T>, Deserializer<T> {
 
     @Override
     public void configure(Map<String, ?> config, boolean isKey) {
-        //Nothing to Configure
+        // Nothing to Configure
     }
 
     @Override
@@ -43,8 +43,9 @@ public class JsonSerializer<T> implements Serializer<T>, Deserializer<T> {
 
     @Override
     public T deserialize(String topic, byte[] bytes) {
-        if (bytes == null)
+        if (bytes == null) {
             return null;
+        }
 //        log.info("deserialize: {}", new String(bytes));
         try {
             return objectMapper.readValue(bytes, clazz);
@@ -55,6 +56,6 @@ public class JsonSerializer<T> implements Serializer<T>, Deserializer<T> {
 
     @Override
     public void close() {
-
+        // Nothing to Close
     }
 }

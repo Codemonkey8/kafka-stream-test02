@@ -1,4 +1,4 @@
-package at.codemonkey.rest.es;
+package at.codemonkey.rest.account;
 
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 

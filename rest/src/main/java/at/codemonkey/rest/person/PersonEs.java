@@ -1,4 +1,4 @@
-package at.codemonkey.rest.es;
+package at.codemonkey.rest.person;
 
 import at.codemonkey.common.Person;
 import lombok.Data;

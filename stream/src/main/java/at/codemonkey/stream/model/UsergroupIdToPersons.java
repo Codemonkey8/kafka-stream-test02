@@ -1,4 +1,4 @@
-package at.codemonkey.stream;
+package at.codemonkey.stream.model;
 
 import at.codemonkey.common.Person;
 import lombok.Data;
@@ -9,17 +9,17 @@ import java.util.TreeSet;
 
 @Data
 public class UsergroupIdToPersons {
+
     String usergroupId;
     Set<Person> persons = new TreeSet<>(Comparator.comparing(Person::getId));
 
-    UsergroupIdToPersons addPerson(Person person) {
+    public UsergroupIdToPersons addPerson(Person person) {
         persons.add(person);
         return this;
     }
 
-    UsergroupIdToPersons removePerson(Person person) {
+    public void removePerson(Person person) {
         persons.removeIf(p -> p.getId().equals(person.getId()));
-        return this;
     }
 
 }

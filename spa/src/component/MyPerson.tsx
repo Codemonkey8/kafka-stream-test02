@@ -1,107 +1,87 @@
-import React from "react";
+import React, {useContext} from "react";
 import {starWars, uniqueNamesGenerator} from 'unique-names-generator';
 import {Alert, Button, ButtonGroup, Form, InputGroup} from "react-bootstrap";
 import InputGroupText from "react-bootstrap/InputGroupText";
+import {UserContext} from "../App";
+
 interface Person {
     name: string
     age: number
 }
 
-interface PersonState {
-    person: Person
-    info: string
+interface PersonRto extends Person {
+    usergroupId: string
 }
 
-class MyPerson extends React.Component<{}, PersonState> {
+function randomAge() {
+    return 1 + Math.floor(Math.random() * 99);
+}
 
-    constructor(props: any) {
-        super(props);
-        this.initStates();
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.initStates = this.initStates.bind(this);
-        this.regenerate = this.regenerate.bind(this);
-        this.setInfo = this.setInfo.bind(this);
-    }
+function randomName() {
+    return uniqueNamesGenerator({
+        dictionaries: [starWars]
+    });
+}
 
-    initStates() {
-        const randomName: string = uniqueNamesGenerator({
-            dictionaries: [starWars]
-        });
-        const randomAge: number = this.getRandomInt(18, 100);
-        this.state = ({person: {name: randomName, age: randomAge}, info: "init"});
-    }
+function randomPerson() {
+    return {name: randomName(), age: randomAge()};
+}
 
-    regenerate() {
-        const randomName: string = uniqueNamesGenerator({
-            dictionaries: [starWars]
-        });
-        const randomAge: number = this.getRandomInt(18, 100);
-        this.setState({person: {name: randomName, age: randomAge}});
-    }
+export default function MyPerson() {
 
-    getRandomInt(min: number, max: number) {
-        return min + Math.floor(Math.random() * (max - min + 1));
-    }
+    const user = useContext(UserContext);
+    const [person, setPerson] = React.useState<Person>(randomPerson());
+    const [info, setInfo] = React.useState<string>("init");
 
-    handleSubmit() {
+    function handleSubmit() {
         console.log("post person:");
-        console.log(this.state.person);
+        console.log(person);
 
+        let rto = person as PersonRto;
+        rto.usergroupId = user.usergroupId;
 
         fetch("http://localhost:8080/person", {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(this.state.person)
+            body: JSON.stringify(rto)
         })
             .then(response => response.json().then(data => {
-                this.setInfo("created id: " + data.id);
+                setInfo("created id: " + data.id);
             }))
-            .catch(err => this.setInfo("error" + err.toString()))
-        this.regenerate();
+            .catch(err => setInfo("error" + err.toString()))
+        regenerate();
     }
 
-    setName(name: string) {
-        this.setState({person: {name: name, age: this.state.person.age}});
+    function regenerate() {
+        setPerson(randomPerson());
     }
 
-    setAge(age: number) {
-        this.setState({person: {name: this.state.person.name, age: age}});
-    }
-
-    setInfo(err: string) {
-        console.log(err);
-        this.setState({info: err});
-    }
-
-    render() {
-        return <div>
-            <h4>Person</h4>
-            <Form className="mb-1 mx-2">
-                <InputGroup className="row mb-1">
-                    <InputGroupText className="col-2">Name</InputGroupText>
-                    <Form.Control className="col" value={this.state.person.name}
-                                  onChange={event => this.setName(event.target.value)}
-                    />
-                </InputGroup>
-                <InputGroup className="row mb-1">
-                    <InputGroupText className="col-2">Iban</InputGroupText>
-                    <Form.Control className="col" value={this.state.person.age}
-                                  onChange={event => this.setAge(parseInt(event.target.value))}
-                    />
-                </InputGroup>
-                <ButtonGroup aria-label="Basic example" className="mb-1">
-                    <Button variant="primary" onClick={this.handleSubmit}>Submit</Button>
-                    <Button variant="secondary" onClick={this.regenerate}>Regenerate</Button>
-                </ButtonGroup>
-                <Alert variant="info" className="row">
-
-                    {this.state.info}
-                </Alert>
-            </Form>
-        </div>
-            ;
-
-    }
+    return <div>
+        <h4>Person</h4>
+        <Form className="mb-1 mx-2">
+            <InputGroup className="row mb-1">
+                <InputGroupText className="col-2">Name</InputGroupText>
+                <Form.Control className="col" value={person.name}
+                              onChange={event => {
+                                  person.name = event.target.value;
+                                  setPerson(person);
+                              }
+                              }
+                />
+            </InputGroup>
+            <InputGroup className="row mb-1">
+                <InputGroupText className="col-2">Iban</InputGroupText>
+                <Form.Control className="col" value={person.age}
+                              onChange={event => person.age = parseInt(event.target.value)}
+                />
+            </InputGroup>
+            <ButtonGroup aria-label="Basic example" className="mb-1">
+                <Button variant="primary" onClick={handleSubmit}>Submit</Button>
+                <Button variant="secondary" onClick={regenerate}>Regenerate</Button>
+            </ButtonGroup>
+            <Alert variant="info" className="row">
+                {info}
+            </Alert>
+        </Form>
+    </div>;
 }
-
-export default MyPerson;

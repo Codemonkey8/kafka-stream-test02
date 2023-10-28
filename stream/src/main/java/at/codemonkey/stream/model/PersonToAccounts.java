@@ -1,4 +1,4 @@
-package at.codemonkey.stream;
+package at.codemonkey.stream.model;
 
 import lombok.Data;
 

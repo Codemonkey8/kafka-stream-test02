@@ -1,105 +1,87 @@
-import React from "react";
-import {names, uniqueNamesGenerator} from 'unique-names-generator';
+import React, {useContext} from "react";
+import {starWars, uniqueNamesGenerator} from 'unique-names-generator';
 import {Alert, Button, ButtonGroup, Form, InputGroup} from "react-bootstrap";
 import InputGroupText from "react-bootstrap/InputGroupText";
+import {UserContext} from "../App";
 
 interface Account {
     name: string
     iban: string
 }
 
-interface AccountState {
-    account: Account
-    info: string
+interface AccountRto extends Account {
+    usergroupId: string
 }
 
-class MyAccount extends React.Component<{}, AccountState> {
+function randomIban(): string {
+    return `AT${Math.floor(Math.random() * 10000000000000000)}`;
+}
 
-    constructor(props: any) {
-        super(props);
-        this.initStates();
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.initStates = this.initStates.bind(this);
-        this.regenerate = this.regenerate.bind(this);
-        this.setInfo = this.setInfo.bind(this);
-    }
+function randomName() {
+    return uniqueNamesGenerator({
+        dictionaries: [starWars]
+    });
+}
 
-    private initStates() {
-        this.state = ({account: {name: this.randomName(), iban: this.randomIban()}, info: "init"});
-    }
+function randomAccount() {
+    return {name: randomName(), iban: randomIban()};
+}
 
-    private regenerate() {
-        this.setState({account: {name: this.randomName(), iban: this.randomIban()}});
-    }
+export default function MyAccount() {
 
-    private randomName(): string {
-        return uniqueNamesGenerator({dictionaries: [names]});
-    }
+    const user = useContext(UserContext);
+    const [account, setAccount] = React.useState<Account>(randomAccount());
+    const [info, setInfo] = React.useState<string>("init");
 
-    private randomIban(): string {
-        return "AT" + Math.floor(Math.random() * 10000000000000000);
-    }
-
-    private handleSubmit() {
+    function handleSubmit() {
         console.log("post account:");
-        console.log(this.state.account);
-        this.setInfo("posting account");
+        console.log(account);
+
+        let rto = account as AccountRto;
+        rto.usergroupId = user.usergroupId;
+
         fetch("http://localhost:8080/account", {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(this.state.account)
+            body: JSON.stringify(rto)
         })
             .then(response => response.json().then(data => {
-                this.setInfo("created id: " + data.id);
+                setInfo("created id: " + data.id);
             }))
-            .catch(err => this.setInfo("error" + err.toString()))
-        this.regenerate();
+            .catch(err => setInfo("error" + err.toString()))
+        regenerate();
     }
 
-    private setName(name: string) {
-        this.state.account.name = name;
-        this.forceUpdate();
+    function regenerate() {
+        setAccount(randomAccount());
     }
 
-    private setIban(iban: string) {
-        this.state.account.iban = iban;
-        this.forceUpdate();
-    }
-
-    private setInfo(err: string) {
-        console.log(err);
-        this.setState({info: err});
-    }
-
-    render() {
-        return <div>
-            <h4>Account</h4>
-            <Form className="mb-1">
-                <InputGroup className="row mb-1">
-                    <InputGroupText className="col-2">Name</InputGroupText>
-                    <Form.Control className="col" value={this.state.account.name}
-                                  onChange={event => this.setName(event.target.value)}
-                    />
-                </InputGroup>
-                <InputGroup className="row mb-1">
-                    <InputGroupText className="col-2">Iban</InputGroupText>
-                    <Form.Control className="col" value={this.state.account.iban}
-                                  onChange={event => this.setIban(event.target.value)}
-                    />
-                </InputGroup>
-                <ButtonGroup aria-label="Basic example" className="mb-1">
-                    <Button variant="primary" onClick={this.handleSubmit}>Submit</Button>
-                    <Button variant="secondary" onClick={this.regenerate}>Regenerate</Button>
-                </ButtonGroup>
-                <Alert variant="info" className="row">
-                    {this.state.info}
-                </Alert>
-            </Form>
-        </div>
-            ;
-
-    }
-
+    return <div>
+        <h4>Account</h4>
+        <Form className="mb-1 mx-2">
+            <InputGroup className="row mb-1">
+                <InputGroupText className="col-2">Name</InputGroupText>
+                <Form.Control className="col" value={account.name}
+                              onChange={event => {
+                                  account.name = event.target.value;
+                                  setAccount(account);
+                              }
+                              }
+                />
+            </InputGroup>
+            <InputGroup className="row mb-1">
+                <InputGroupText className="col-2">Iban</InputGroupText>
+                <Form.Control className="col" value={account.iban}
+                              onChange={event => account.iban = event.target.value}
+                />
+            </InputGroup>
+            <ButtonGroup aria-label="Basic example" className="mb-1">
+                <Button variant="primary" onClick={handleSubmit}>Submit</Button>
+                <Button variant="secondary" onClick={regenerate}>Regenerate</Button>
+            </ButtonGroup>
+            <Alert variant="info" className="row">
+                {info}
+            </Alert>
+        </Form>
+    </div>;
 }
-
-export default MyAccount;

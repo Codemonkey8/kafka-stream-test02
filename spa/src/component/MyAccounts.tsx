@@ -1,109 +1,79 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Button, Table} from "react-bootstrap";
-import {Client} from '@stomp/stompjs';
-
+import {useSubscription} from "react-stomp-hooks";
 
 interface Account {
     id: string
     name: string
     iban: string
+    usergroupId: string
 }
 
-interface AccountsState {
-    accounts: Account[]
-    info: string
-}
+export default function MyAccounts() {
 
-class MyAccounts extends React.Component<{}, AccountsState> {
+    const [accounts, setAccounts] = React.useState<Account[]>([]);
 
-    private client: Client = new Client;
+    useEffect(() => {
+        console.log("useEffect")
+        loadAccounts();
+    }, []);
 
-    constructor(props: any) {
-        super(props);
-        this.initStates();
-        this.initStates = this.initStates.bind(this);
-        this.handleReloadList = this.handleReloadList.bind(this);
-        this.render = this.render.bind(this);
-        this.handleDelete = this.handleDelete.bind(this);
-        // setInterval(() => this.handleReloadList(), 200);
+    useSubscription("/topic/account", (message) => {
+        console.log("received account event message: " + message.body);
+        loadAccounts();
+    });
+
+    function loadAccounts() {
+        fetchAccounts().then(result => setAccounts(result))
     }
 
-    initStates() {
-        this.state = ({accounts: [], info: "init"});
-    }
-
-    componentDidMount() {
-        this.handleReloadList();
-        this.client.configure({
-            brokerURL: 'ws://localhost:8080/ws',
-            onConnect: () => {
-                console.log('onConnect');
-                this.client.subscribe('/topic/account', (message: { body: any; }) => {
-                    console.log(message.body);
-                    this.handleReloadList();
-                });
-            },
-            // Helps during debugging, remove in production
-            debug: (str: any) => {
-                console.log(new Date(), str);
-            }
-        });
-        this.client.activate();
-    }
-
-    handleReloadList() {
-        fetch("http://localhost:8080/account", {}).then(response => response.json().then(data => {
-            console.log(data);
-            this.setState({accounts: data.content});
-            console.log(this.state);
-        })).catch(err => {
+    async function fetchAccounts() {
+        console.log("fetchAccounts")
+        try {
+            const response = await fetch("http://localhost:8080/account", {});
+            const data = await response.json();
+            return data.content as Account[];
+        } catch (err) {
             console.log(err);
-            this.setState({info: err});
-        });
+            return [] as Account[];
+        }
     }
 
-    handleDelete(id: string) {
-        fetch("http://localhost:8080/account/" + id, {
-            method: 'DELETE'
-        }).then(response => response.json().then(data => {
-            console.log("deleted account " + id);
-            this.handleReloadList();
-        })).catch(err => {
+    function handleDelete(account: Account) {
+        fetch("http://localhost:8080/account", {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(account)
+        }).then(() => {
+            console.log("deleted account " + account.id);
+            loadAccounts();
+        }).catch(err => {
             console.log(err);
-            this.setState({info: err});
         });
     }
 
-    setInfo(err: string) {
-        console.log(err);
-        this.setState({info: err});
-    }
-
-    render() {
-        return (
-            <div>
-                {/*<Button variant="info" onClick={() => this.handleReloadList()}>reload</Button>*/}
-                <Table striped bordered hover>
-                    <thead>
-                    <tr>
-                        <th>name</th>
-                        <th>age</th>
+    return (
+        <div>
+            <Table striped bordered hover>
+                <thead>
+                <tr>
+                    <th>usergroup</th>
+                    <th>name</th>
+                    <th>iban</th>
+                </tr>
+                </thead>
+                <tbody>
+                {accounts.map(account =>
+                    <tr key={account.id}>
+                        <td>{account.usergroupId}</td>
+                        <td>{account.name}</td>
+                        <td>{account.iban}</td>
+                        <td><Button variant="outline-danger"
+                                    onClick={() => handleDelete(account)}>delete</Button></td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {this.state.accounts.map(account =>
-                        <tr key={account.id}>
-                            <td>{account.name}</td>
-                            <td>{account.iban}</td>
-                            <td><Button variant="outline-danger"
-                                        onClick={() => this.handleDelete(account.id)}>delete</Button></td>
-                        </tr>
-                    )}
-                    </tbody>
-                </Table>
-            </div>
-        );
-    }
+                )}
+                </tbody>
+            </Table>
+        </div>
+    );
 }
-
-export default MyAccounts;
