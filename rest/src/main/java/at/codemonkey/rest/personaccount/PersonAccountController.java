@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
-@RequestMapping("/personaccount")
+@RequestMapping("/personAccount")
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true)
 public class PersonAccountController {
